@@ -52,7 +52,7 @@ Point your browser to::
 
 The demo directly interacts with Ethereum node over JSON-RPC protocol using `web3.js <https://github.com/ethereum/web3.js/>`_ library.
 
-Fill in ``Contract address` based on prior ``populus deploy`` command.
+Fill in ``Contract address`` based on prior ``populus deploy`` command and **Connect** to contract.
 
 Running automated test suite
 ============================

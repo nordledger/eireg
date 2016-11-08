@@ -7,8 +7,21 @@ python: 3.5
 env:
   - TOXENV=py35
 
+cache:
+  - pip: true
+  - directories:
+    - $TRAVIS_BUILD_DIR/solc-versions/solc-0.4.2
+    - $TRAVIS_BUILD_DIR/solc-versions/solidity-0.4.2/build
+    - $HOME/.ethash/
+
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -U tox
+install:
+    - pip install -U tox
+    - ./install_solidity.bash
+
+before_script:
+  - mkdir -p $HOME/.ethash
+  - geth makedag 0 $HOME/.ethash
 
 # command to run tests, e.g. python setup.py test
 script: tox -e ${TOXENV}
