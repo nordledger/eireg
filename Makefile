@@ -51,15 +51,15 @@ lint: ## check style with flake8
 	flake8 eireg tests
 
 test: ## run tests quickly with the default Python
-	py.test
-	
+	py.test tests
+
 
 test-all: ## run tests on every Python version with tox
 	tox
 
 coverage: ## check code coverage quickly with the default Python
 	coverage run --source eireg py.test
-	
+
 		coverage report -m
 		coverage html
 		$(BROWSER) htmlcov/index.html
@@ -86,3 +86,18 @@ dist: clean ## builds source and wheel package
 
 install: clean ## install the package to the active Python's site-packages
 	python setup.py install
+
+compile:
+	populus compile
+
+deploy-local: compile
+	populus deploy --chain local_test EInvoicingRegistry
+
+prepare-html: compile
+	cp build/contracts.json html
+
+run-local-test-chain:
+	geth --rpc --rpccorsdomain "*" --rpcaddr 127.0.0.1 --rpcport 8545 --rpcapi admin,debug,eth,miner,net,personal,shh,txpool,web3,ws --datadir chains/local_test --maxpeers 0 --networkid 1234 --port 30303 --verbosity 5 --unlock 0 --password venv/lib/python3.5/site-packages/geth/default_blockchain_password --nodiscover --mine --minerthreads 1
+
+run-web-server: prepare-html
+	source venv/bin/activate && cd html && python -m http.server

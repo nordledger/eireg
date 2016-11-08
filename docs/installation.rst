@@ -15,6 +15,8 @@ Experience needed
 
 * Basic Github usage
 
+* Basic GNU make usage
+
 Packages needed
 
 * `Populus native dependencies <http://populus.readthedocs.io/en/latest/quickstart.html>`_

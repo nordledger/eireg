@@ -11,7 +11,7 @@ First we deploy a version of the contract on local chain managed by Populus.
 
 .. code-block:: console
 
-    populus deploy EInvoicingRegistry --chain local_test
+    make deploy-local
 
 You will get deployment details::
 
@@ -25,26 +25,26 @@ You will get deployment details::
 
 This will take ~60 seconds. The default coinbase account is ``0x27d1755735abaf6cefb2299d18458b1091bb2c7b``. It is configured in ``populus.ini``.
 
+Write down **Address** field. It varies for each deployment.
+
 Interacting with web browser
 ============================
 
 A simple interactive HTML demo is provided to interact with the contract.
 
-Now start the local chain:
+Start geth deamon running a local chain. This is the same chain where we deployed the smart contract earlier:
 
 .. code-block:: console
 
-    geth --rpc --rpccorsdomain "*" --rpcaddr 127.0.0.1 --rpcport 8545 --rpcapi admin,debug,eth,miner,net,personal,shh,txpool,web3,ws --datadir chains/local_test --maxpeers 0 --networkid 1234 --port 30303 --verbosity 5 --unlock 0 --password venv/lib/python3.5/site-packages/geth/default_blockchain_password --nodiscover --mine --minerthreads 1
+    make run-local-test-chain
 
 It will start to mine transactions on your local computer.
 
-In another terminal start a local development web server:
+In **another terminal** start a local development web server:
 
 .. code-block:: console
 
-    source venv/bin/activate  # Activate virtualenv
-    cd html
-    python -m http.server
+    make run-web-server
 
 Point your browser to::
 
