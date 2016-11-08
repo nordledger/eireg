@@ -61,6 +61,6 @@ To run test suite:
 
 .. code-block::
 
-    py.test tests
+    make test
 
 

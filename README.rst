@@ -24,13 +24,10 @@ Blockchain based eInvoice address registry. Ethereum smart contract based eInvoi
 * Free software: MIT license
 * Documentation: https://eireg.readthedocs.io.
 
-Features
---------
-
-*
 
 Installation
 ------------
+
 
 
 Credits
