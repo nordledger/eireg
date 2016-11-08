@@ -17,15 +17,15 @@ cache:
     - $HOME/.ethash/
 
 before_install:
-    - sudo add-apt-repository -y ppa:ethereum/ethereum
-    - sudo apt-get update
+  - sudo add-apt-repository -y ppa:ethereum/ethereum
+  - sudo apt-get update
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
-    - travis_retry sudo apt-get install -y ethereum
-    - travis_retry pip install setuptools --upgrade
-    - pip install -U tox
-    - ./install_solidity.bash
+  - travis_retry sudo apt-get install -y ethereum
+  - travis_retry pip install setuptools --upgrade
+  - pip install -U tox
+  - ./install_solidity.bash
 
 before_script:
   - mkdir -p $HOME/.ethash
