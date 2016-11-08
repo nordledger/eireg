@@ -19,16 +19,10 @@
 Introduction
 ------------
 
-Blockchain based eInvoice address registry. Ethereum smart contract based eInvoicing registry and its test suite.
+This project is a blockchain based e-invoicing address registry.
 
 * Free software: MIT license
 * Documentation: https://eireg.readthedocs.io.
-
-
-Installation
-------------
-
-
 
 Credits
 -------
