@@ -79,11 +79,11 @@ contract EInvoicingRegistry {
         }
     }
 
-    function getData(bytes32 invoicingAddress) public returns (bytes) {
+    function getData(bytes32 invoicingAddress) public constant returns (bytes) {
         return registry[invoicingAddress].data;
     }
 
-    function getOwners(bytes32 invoicingAddress) public returns (address[]) {
+    function getOwners(bytes32 invoicingAddress) public constant returns (address[]) {
         return registry[invoicingAddress].owners;
     }
 
@@ -94,7 +94,7 @@ contract EInvoicingRegistry {
         registry[invoicingAddress].owners.push(msg.sender);
     }
 
-    function isAllowedToUpdate(bytes32 invoicingAddress, address addr) public returns (bool) {
+    function isAllowedToUpdate(bytes32 invoicingAddress, address addr) public constant returns (bool) {
         uint i;
         address[] memory owners;
 

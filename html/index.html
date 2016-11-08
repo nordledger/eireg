@@ -1,6 +1,9 @@
 <html>
 <head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
     <script src="jquery.js"></script>
     <script src="web3.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
@@ -29,36 +32,52 @@
 
             <form>
               <div class="form-group">
-                <label for="contract-input">Contract address</label>
+                <label for="setup-contract-address">Contract address</label>
                 <input type="text" class="form-control" id="setup-contract-address" placeholder="0x000000000000">
               </div>
-              <button id="btn-setup-contract" type="button" class="btn btn-default">Submit</button>
+              <button id="btn-setup-contract" type="button" class="btn btn-default">Connect</button>
             </form>
 
             <div id="contract-manipulation">
 
-                <h2>Enter / update data</h2>
+                <h2>Add / update invoicing address records</h2>
+
+                <div class="alert alert-success" id="alert-update-success" style="display: none">
+                    Updated records for <span id="updated-data-invoicing-address"></span>
+                </div>
+
                 <form>
                   <div class="form-group">
-                    <label for="contract-input">Contract address</label>
-                    <input type="text" class="form-control" id="contract-input" placeholder="0x000000000000">
+
+                    <label for="update-data-invoicing-address">Invoicing address (OVT)</label>
+                    <input type="text" class="form-control" id="update-data-invoicing-address" placeholder="003712345678">
+
+                    <label for="update-data-invoicing-data">Data (JSON)</label>
+                    <textarea class="form-control" id="update-data-invoicing-data" placeholder="{}"></textarea>
+
                   </div>
-                  <button type="submit" class="btn btn-default">Submit</button>
+                  <button id="btn-update-data" type="button" class="btn btn-default">Update</button>
                 </form>
 
-                <h2>Query data</h2>
+                <h2>Query invoicing address records</h2>
                 <form>
                   <div class="form-group">
-                    <label for="einvoice-address-input">EInvoice address (OVH)</label>
-                    <input type="text" class="form-control" id="einvoice-address-input" placeholder="0x000000000000">
+                        <label for="query-invoicing-address">EInvoice address (OVT)</label>
+                    <input type="text" class="form-control" id="query-invoicing-address" placeholder="003712345678">
                   </div>
-                  <button type="submit" class="btn btn-default">Show stored data</button>
+                  <button id="btn-query-data" type="button" class="btn btn-default">Fetch</button>
+                  <pre id="query-result" style="display: none"></pre>
                 </form>
 
-                <h2>Add key</h2>
+                <h2 class="text-danger">Add key</h2>
                 <p>
                     Add new key that is allowed to control user data.
                 </p>
+
+                <p class="text-danger">
+                    (Not implemented)
+                </p>
+
                 <form>
                   <div class="form-group">
                     <label for="einvoice-address-input">EInvoice address (OVH)</label>
@@ -68,9 +87,13 @@
                   <button type="submit" class="btn btn-default">Show stored data</button>
                 </form>
 
-                <h2>Remove key</h2>
+                <h2 class="text-danger">Remove key</h2>
                 <p>
                     Remove deprecated access key.
+                </p>
+
+                <p class="text-danger">
+                    (Not implemented)
                 </p>
 
                 <form>
