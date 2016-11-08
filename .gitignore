@@ -62,5 +62,6 @@ target/
 .python-version
 
 chains/*
+eireg/chains/*
 venv
 build
