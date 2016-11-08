@@ -54,8 +54,8 @@ The demo directly interacts with Ethereum node over JSON-RPC protocol using `web
 
 Fill in ``Contract address` based on prior ``populus deploy`` command.
 
-Running tests
-=============
+Running automated test suite
+============================
 
 To run test suite:
 
