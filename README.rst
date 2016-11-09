@@ -2,14 +2,14 @@
 .. image:: https://img.shields.io/pypi/v/eireg.svg
         :target: https://pypi.python.org/pypi/eireg
 
-.. image:: https://img.shields.io/travis/miohtama/eireg.svg
+.. image:: https://img.shields.io/travis/nordledger/eireg.svg
         :target: https://travis-ci.org/miohtama/eireg
 
 .. image:: https://readthedocs.org/projects/eireg/badge/?version=latest
         :target: https://eireg.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-.. image:: https://pyup.io/repos/github/miohtama/eireg/shield.svg
+.. image:: https://pyup.io/repos/github/nordledger/eireg/shield.svg
      :target: https://pyup.io/repos/github/miohtama/eireg/
      :alt: Updates
 

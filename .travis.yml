@@ -26,7 +26,7 @@ install:
   - travis_retry pip install setuptools --upgrade
   - pip install -U tox
   - ./install_solidity.bash
-  - export PATH=$PATH:$PWD/geth:$PWD/solc-versions/solidity-0.4.2/build/solc
+  - export PATH=$PATH:$PWD/solc-versions/solidity-0.4.2/build/solc
   - solc --version
   - geth -h
 
