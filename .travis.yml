@@ -26,6 +26,8 @@ install:
   - travis_retry pip install setuptools --upgrade
   - pip install -U tox
   - ./install_solidity.bash
+  - solc --version
+  - geth -h
 
 before_script:
   - mkdir -p $HOME/.ethash
