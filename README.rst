@@ -13,9 +13,6 @@
      :target: https://pyup.io/repos/github/miohtama/eireg/
      :alt: Updates
 
-
-.. contents:: :local:
-
 Introduction
 ------------
 
