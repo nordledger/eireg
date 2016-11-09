@@ -21,7 +21,14 @@ Introduction
 
 This project is a blockchain based e-invoicing address registry.
 
+* `EInvoicingRegistry smart contract in Solidity language <https://github.com/nordledger/eireg/blob/master/contracts/EInvoicingRegistry.sol>`_
+
+* `Python based automated test suite <https://github.com/nordledger/eireg/tree/master/tests>`_
+
+* `HTML + JavaScript based interactive demo <https://github.com/nordledger/eireg/tree/master/html>`_
+
 * Free software: MIT license
+
 * Documentation: https://eireg.readthedocs.io.
 
 Credits
