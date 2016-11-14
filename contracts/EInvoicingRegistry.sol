@@ -5,30 +5,37 @@ contract EInvoicingRegistry {
 
     string public version = "0.1";
 
+    /**
+     * Describe one e-invoicing address record.
+     *
+     */
     struct InvoicingAddressInfo {
 
         /**
-         * List of Ethereum addresses that are allowed to modify
+         * List of Ethereum addresses (public keys) that are allowed to modify
          * the invoicing address info.
          *
+         * For example, the record owner (company itself), invoice operators
+         * and governmental registries can be listed here.
          */
         address[] owners;
 
         /**
          * Payload is all public data for one invoicing address.
          *
-         * Smart contract itself doesn't care what we st
+         * Smart contract itself doesn't care what we put here.
+         * This can be XML file, JSON file or something else
+         * and is defined outside blockchain system.
          *
-         * However JSON format is preferred due to its universality.
          */
         bytes data;
     }
 
     /**
-     * Map addresses to records.
+     * Map e-invoicing addresses to full data records.
      *
      * Key is 32 bytes, or 32 characters of ASCII.
-     * In the case of Finland this is OVH address, expressed as ASCII string
+     * In the case of Finland this is OVT address, expressed as ASCII string
      * where the right bytes are zero padded.
      *
      */
@@ -36,6 +43,9 @@ contract EInvoicingRegistry {
 
 
     /**
+     * Events that smart contracts post to blockchain, so that various listening
+     * services can easily detect modifications.
+     *
      * These events are indexable by Ethereum node and you can directly query them in JavaScript.
      */
     event RecordCreated(bytes32 invoicingAddress);
@@ -94,6 +104,12 @@ contract EInvoicingRegistry {
         registry[invoicingAddress].owners.push(msg.sender);
     }
 
+    /**
+     * Check if particular message sender is allowed to update the record.
+     *
+     * The message sender (address, public key) must be listed in the record owners.
+     *
+     */
     function isAllowedToUpdate(bytes32 invoicingAddress, address addr) public constant returns (bool) {
         uint i;
         address[] memory owners;
