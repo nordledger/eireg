@@ -1,8 +1,3 @@
-from typing import Tuple
-
-from eireg.eireg.data import AddressFormat
-
-
 def string_to_bytes32(str):
     """Convert OVT formatted invoicing address to internal bytes32 format.
 
@@ -21,18 +16,25 @@ def ytunnus_to_vat_id(str):
     return "FI" + str[0:-2] + str[-1]
 
 
-def normalize_invoicing_address(str) -> Tuple[AddressFormat, str]:
-    """Guess what format the invoicing address is and return normalized form."""
+def normalize_invoicing_address(str) -> str:
+    """Guess what format the invoicing address is and return normalized form.
+
+    :return: E.g. "IBAN:FI6213763000140986"
+    """
 
     # 003705090754 OVT-tunnus
     # FI6213763000140986 IBAN
 
     mappings = {
-        "OVT-Tunnus": AddressFormat.OVT,
-        "IBAN": AddressFormat.IBAN,
+        "OVT-tunnus": "OVT",
+        "IBAN": "IBAN",
     }
 
     address, spec = str.split(" ")
-    return mappings[spec], address
+
+    if spec == "OVT-tunnus":
+        address = address.lstrip("0")  # Dunno?
+
+    return mappings[spec] + ":" + address
 
 

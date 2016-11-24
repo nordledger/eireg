@@ -5,9 +5,9 @@ import os
 from typing import Optional
 from web3.contract import Contract
 
-from eireg.eireg.blockchain import check_succesful_tx
-from eireg.eireg.data import NULL_VAT_ID, ContentType
-from eireg.eireg.utils import ytunnus_to_vat_id, normalize_invoicing_address, string_to_bytes32
+from eireg.blockchain import check_succesful_tx
+from eireg.data import ContentType
+from eireg.utils import ytunnus_to_vat_id, normalize_invoicing_address, string_to_bytes32
 
 SAMPLE_CSV = os.path.join(os.path.dirname(__file__), "..", "sample.csv")
 
@@ -32,15 +32,17 @@ def read_csv(fname, limit_to: Optional[list]=None):
 
 
 def import_invoicing_address(contract: Contract, tieke_data: dict):
-    """Sample importer for an invoicing address."""
+    """Sample importer for an invoicing address.
 
-    vat_id = ytunnus_to_vat_id(tieke_data["Y-Tunnus"])
-    vat_id = string_to_bytes32(vat_id)  # Internal format
+    Slow. Confirms each transaction in serial fashion.
+    """
+
+    vat_id = ytunnus_to_vat_id(tieke_data["Y-tunnus"])
 
     # We have not imported this company yet
     if not contract.call().hasCompany(vat_id):
         # TODO: This demo creates a company record too, but all vatIds should be prepopulated
-        txid = contract.transact.createNewCompany(vat_id)
+        txid = contract.transact().createCompany(vat_id)
         assert check_succesful_tx(contract, txid)
 
         # Create core company info
@@ -50,16 +52,15 @@ def import_invoicing_address(contract: Contract, tieke_data: dict):
         }
 
         data = json.dumps(data)  # Convert to UTF-8 string
-        contract.transact.setCompanyData(vat_id, ContentType.TiekeCompanyData, data)
+        contract.transact().setCompanyData(vat_id, ContentType.TiekeCompanyData.value, data)
 
-    address, address_format = normalize_invoicing_address(tieke_data["Vastaanotto-osoite"])
-    address = string_to_bytes32(address)# Internal format
+    address = normalize_invoicing_address(tieke_data["Vastaanotto-osoite"])
 
     # We have not imported this address yet
-    assert contract.call().getVatIdByAddress(vat_id, address) == NULL_VAT_ID
+    assert contract.call().getVatIdByAddress(address) == ""
 
     # Create new OVT address
-    txid = contract.transact().createInvoicingAddress(vat_id, address_format, address)
+    txid = contract.transact().createInvoicingAddress(vat_id, address)
     assert check_succesful_tx(contract, txid)
 
     tieke_address_data = {
@@ -69,6 +70,8 @@ def import_invoicing_address(contract: Contract, tieke_data: dict):
         "sends": tieke_data["Lähettää"] == "Kyllä",
         "receives": tieke_data["Vastaanottaa"] == "Kyllä",
     }
+    tieke_address_data = json.dumps(tieke_address_data)  # UTF-8 encoded string
 
-    contract.transact().setInvoicingAddressData(vat_id, address, ContentType.TiekeAddressData, tieke_address_data)
+    txid = contract.transact().setInvoicingAddressData(vat_id, address, ContentType.TiekeAddressData.value, tieke_address_data)
+    assert check_succesful_tx(contract, txid)
 
