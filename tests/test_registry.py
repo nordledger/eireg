@@ -5,32 +5,8 @@ from web3.utils.transactions import wait_for_transaction_receipt
 from web3.contract import Contract
 from web3 import Web3
 
-
-#: Sample data
-RECORD = {
-    "name": "Foobär Oy",
-    "address": "Esimerkkikatu 1A 00810 Helsinki",
-}
-
-RECORD_2 = {
-    "name": "Foobär Oy",
-    "address": "Muuttanutkuja 1A 00810 Helsinki",
-}
-
-#: Sample address
-OVT = "003712345678"
-
-
-def ovt_to_bytes32(ovt: str) -> bytes:
-    """Convert OVT formatted invoicing address to internal bytes32 format.
-
-    Right pad addresses with zero.
-    """
-    b = ovt.encode("ascii")
-    assert len(b) < 32
-    b += b'\0' * (32 - len(b))
-    assert len(b) == 32
-    return b
+from eireg import importer
+from eireg.eireg.importer import import_invoicing_address
 
 
 @pytest.fixture()
@@ -44,6 +20,15 @@ def web3(chain) -> Web3:
     return chain.web3
 
 
+@pytest.yield_fixture()
+def sample_company(chain) -> dict:
+    """Load one example company from CSV sample data."""
+
+    # Adusso Oy
+    for data in importer.read_csv(importer.SAMPLE_CSV, ["2430372-7"]):
+        return data
+
+
 def check_succesful_tx(web3, txid: str) -> bool:
     """See if transaction went through (Solidity code did not throw)"""
     # http://ethereum.stackexchange.com/q/6007/620
@@ -54,31 +39,17 @@ def check_succesful_tx(web3, txid: str) -> bool:
     return txinfo["gas"] != receipt["gasUsed"]
 
 
-def test_add_record(web3, registry_contract):
-    """Create a new record."""
 
-    # This call will come
-    ovt_b = ovt_to_bytes32(OVT)
-    data = json.dumps(RECORD).encode("utf-8")
+def test_import_tieke(web3: Web3, registry_contract: Contract, sample_company: dict):
+    """Create a new company record + new invoicing address under it."""
 
-    # Store data
-    txid = registry_contract.transact().updateData(ovt_b, data)
-    assert check_succesful_tx(web3, txid)
+    import_invoicing_address(registry_contract, sample_company)
 
-    # Verify we got a created event
-    filter = registry_contract.pastEvents("RecordCreated")
-    log_entries = filter.get(False)
-    assert len(log_entries) == 1   # We get 1 RecordCreated event
 
-    # Read back data
-    data = registry_contract.call().getData(ovt_b)
-    data = json.loads(data)
-    assert data == RECORD
 
-    # Check we are the initial owner
-    our_address = web3.eth.coinbase
-    owners = registry_contract.call().getOwners(ovt_b)
-    assert owners == [our_address]
+
+
+
 
 
 def test_update_record(web3, registry_contract):

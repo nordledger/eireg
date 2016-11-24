@@ -1,46 +1,94 @@
+enum ContentType {
+
+    Undefined,
+
+    /** XML as defined in PEPPOL */
+    InvoiceContactInformation,
+
+    /** Direct YTJ / other national import */
+    NationalBusinessRegistryData,
+
+    /** Data operator wants to expose to others */
+    OperatorPublicData,
+
+    /** Data as defined in current TIEKE */
+    TiekeCompanyData,
+
+    /** Data as defined in current TIEKE */
+    TiekeAddressData
+
+}
+
+enum AddressFormat {
+    Undefined,
+    OVT,
+    IBAN,
+    Other
+}
+
+
+struct InvoicingAddressData {
+
+    /* How can modify this invoicing address as a
+       list of Ethereum addresses (public keys).
+       Contains one entry, the public key of operator. */
+    address owners[];
+
+    /* Invoicing address as ASCII string, all capitalized */
+    bytes32 invoicingAddress;
+
+    AddressFormat format;
+
+    /* Different information attached to this invoicing address  */
+    mapping(ContentType=>string) data;
+}
+
+
+/* Business owner set tables what addresses he/she wants to use */
+struct RoutingInformation {
+    mapping(bytes32 => bool) allowReceive;
+    mapping(bytes32 => bool) allowSend;
+
+    /** Active business owner set address where invoices should be
+      * send if multiple options are available */
+    bytes32 defaultReceive;
+}
+
+struct Company {
+
+    /* Y-Tunnus in Finnish system in the format FI123134. Right bytes zero padded. */
+    bytes32 vatId;
+
+    /** List of different business core information data */
+    mapping(ContenType => string data[]) businessInformation;
+
+    /* Routing information as set by the business owner. */
+    RoutingInformation routingInformation;
+
+    InvoicingAddress invoicingAddresses[];
+}
+
 /**
- * Registry of e-invoicing addresses as Solidity smart contract.
- */
+* Registry of e-invoicing addresses as Solidity smart contract.
+*/
 contract EInvoicingRegistry {
 
-    string public version = "0.1";
+    string public version = "0.2";
 
     /**
-     * Describe one e-invoicing address record.
-     *
-     */
-    struct InvoicingAddressInfo {
-
-        /**
-         * List of Ethereum addresses (public keys) that are allowed to modify
-         * the invoicing address info.
-         *
-         * For example, the record owner (company itself), invoice operators
-         * and governmental registries can be listed here.
-         */
-        address[] owners;
-
-        /**
-         * Payload is all public data for one invoicing address.
-         *
-         * Smart contract itself doesn't care what we put here.
-         * This can be XML file, JSON file or something else
-         * and is defined outside blockchain system.
-         *
-         */
-        bytes data;
-    }
-
-    /**
-     * Map e-invoicing addresses to full data records.
+     * Map VAT IDs to company records.
      *
      * Key is 32 bytes, or 32 characters of ASCII.
      * In the case of Finland this is OVT address, expressed as ASCII string
      * where the right bytes are zero padded.
      *
      */
-    mapping(bytes32 => InvoicingAddressInfo) registry;
+    mapping(bytes32 => InvoicingAddressInfo) vatIdRegistry;
 
+    /**
+     * MAP invoicing addresses to VAT ids */
+     */
+    mapping(bytes32 => bytes32) invoicingAddressRegistry;
 
     /**
      * Events that smart contracts post to blockchain, so that various listening
@@ -48,8 +96,10 @@ contract EInvoicingRegistry {
      *
      * These events are indexable by Ethereum node and you can directly query them in JavaScript.
      */
-    event RecordCreated(bytes32 invoicingAddress);
-    event RecordUpdated(bytes32 invoicingAddress);
+    event CompanyCreated(bytes32 vatId);
+    event CompanyUpdated(bytes32 vatId);
+    event InvoicingAddressCreated(bytes32 invoicingAddress);
+    event InvoicingAddressUpdated(bytes32 invoicingAddress);
 
     /**
      * Constructor parameterless.
@@ -58,69 +108,110 @@ contract EInvoicingRegistry {
     }
 
     /**
-     * Create or update invoicing address data.
+     * Create or update a new company record.
      *
      * If a record is created the initial owners are the caller of the function.
-     *
      */
-    function updateData(bytes32 invoicingAddress, bytes data) public returns (bool) {
-        InvoicingAddressInfo memory info;
+    function updateCompany(bytes32 vatId, ContentType contentType, string data) public returns (bool) { {
 
-        info = registry[invoicingAddress];
+        // Check if this party is allowed to update company core data (msg.sender = YTJ only)
+        if(!canUpdateCompany(vatId, msg.sender)) {
+            throw;
+        }
 
         // Solidity doesn't have the concept of null,
         // so for empty records we check no owners
-        if(info.owners.length == 0) {
+        if(!hasCompany(vatId)) {
             // This is a new record
-            createNewRecord(invoicingAddress, data);
-
-            RecordCreated(invoicingAddress);
-
+            createNewCompany(vatId);
+            CompanyCreated(vatId);
         } else {
-            if(!isAllowedToUpdate(invoicingAddress, msg.sender)) {
-                // The current contract caller has no priviledges to update data
-                throw;
-            }
-
             // Update new data
-            registry[invoicingAddress].data = data;
-
-            RecordUpdated(invoicingAddress);
+            CompanyUpdated(vatId);
         }
+
+        // Set company data
+        vatIdRegistry[vatId].businessInformation[contentType] = data;
     }
 
-    function getData(bytes32 invoicingAddress) public constant returns (bytes) {
-        return registry[invoicingAddress].data;
-    }
-
-    function getOwners(bytes32 invoicingAddress) public constant returns (address[]) {
-        return registry[invoicingAddress].owners;
-    }
-
-    function createNewRecord(bytes32 invoicingAddress, bytes data) private {
-        registry[invoicingAddress].data = data;
-
-        // By default new records are owned by their creator only
-        registry[invoicingAddress].owners.push(msg.sender);
+    function hasCompany(bytes32 vatId) public constant returns (bool) {
+        return vatIdRegistry[vatId].owners.length == 0;
     }
 
     /**
-     * Check if particular message sender is allowed to update the record.
-     *
-     * The message sender (address, public key) must be listed in the record owners.
-     *
+     * Return VAT ID for a given invoicing address.
      */
-    function isAllowedToUpdate(bytes32 invoicingAddress, address addr) public constant returns (bool) {
-        uint i;
-        address[] memory owners;
+    function getVatIdByAddress(bytes32 invoicingAddress) public constant returns (bytes32) {
+        return invoicingAddressRegistry[invoicingAddress];
+    }
 
-        owners = registry[invoicingAddress].owners;
-        for(i=0; i<owners.length; i++) {
-            if(owners[i] == addr) {
-                return true;
-            }
+    function createCompany(bytes32 vatId) public {
+
+        // Check if this party is allowed to update company core data (msg.sender = YTJ only)
+        if(!canUpdateCompany(vatId, msg.sender)) {
+            throw;
         }
 
-        return false;
+        vatIdRegistry[vatId].owners.push(msg.sender);
+        CompanyCreated(vatId);
     }
+
+    function createInvoicingAddress(bytes32 vatId, bytes32 invoicingAddress, AddressFormat format) public {
+
+        if(!canCreateInvoicingAddress(vatId, invoicingAddress)) {
+            throw;
+        }
+
+        // Become owner
+        vatIdRegistry[vatId].invoicingAddresses[invoicingAddress].owners.append(msg.sender);
+        vatIdRegistry[vatId].invoicingAddresses[invoicingAddress].format = format;
+
+        // Backwards mapping invoicing address -> VAT ID
+        invoicingAddressRegistry[invoicingAddress] = vatId;
+
+        InvoicingAddressCreated(invoicingAddress);
+    }
+
+    function setCompanyData(bytes32 vatId, bytes32 invoicingAddress, ContentType contentType, string data) public {
+
+        // Check if this party is allowed to update company core data (msg.sender = YTJ only)
+        if(!canUpdateCompany(vatId, msg.sender)) {
+            throw;
+        }
+
+        vatIdRegistry[vatId].businessInformation[contentType] = data;
+
+        CompanyUpdated(vatId);
+    }
+
+    function setInvoicingAddressData(bytes32 vatId, bytes32 invoicingAddress, ContentType contentType, string data) public {
+
+        if(!canCreateInvoicingAddress(vatId, invoicingAddress)) {
+            throw;
+        }
+
+        // Become owner
+        vatIdRegistry[vatId].invoicingAddresses[invoicingAddress].owners.append(msg.sender);
+        vatIdRegistry[vatId].invoicingAddresses[invoicingAddress].format = format;
+
+        // Backwards mapping invoicing address -> VAT ID
+        invoicingAddressRegistry[invoicingAddress] = vatId;
+
+        InvoicingAddressUpdated(invoicingAddress);
+    }
+
+    /**
+     * Not implemented yet. Anybody can update company core data.
+     */
+    function canUpdateCompany(bytes32 vatId, address sender) {
+        return true;
+    }
+
+    /**
+     * Not implemented yet. Anybody can update company core data.
+     */
+    function canCreateInvoicingAddress(bytes32 vatId, bytes32 invoicingAddress, address sender) {
+        return true;
+    }
+
 }

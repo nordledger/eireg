@@ -17,12 +17,22 @@ Experience needed
 
 * Basic GNU make usage
 
+Setting up
+^^^^^^^^^^
+
 Packages needed
 
 * `Populus native dependencies <http://populus.readthedocs.io/en/latest/quickstart.html>`_
 
-Setting up
-^^^^^^^^^^
+Get Solidity compiler. For OSX:
+
+.. code-block:: console
+
+    # Install solcjs using npm (JavaScript port of solc)
+    sudo npm install -g solc
+
+    # Symlink solcjs as solc, so that Populus finds it as default solc command
+    sudo ln -s `which solcjs` /usr/local/bin/solc
 
 Clone this repository from Github.
 
