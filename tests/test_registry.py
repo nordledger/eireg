@@ -2,7 +2,6 @@ import json
 from typing import List
 
 import pytest
-from web3.utils.transactions import wait_for_transaction_receipt
 from web3.contract import Contract
 from web3 import Web3
 
@@ -30,6 +29,16 @@ def sample_company() -> dict:
     # 003724303727 OVT-tunnus
     for data in importer.read_csv(importer.SAMPLE_CSV, ["2430372-7"]):
         return data
+
+
+@pytest.fixture()
+def broken_company() -> dict:
+    """Load one example company from CSV sample data with incomplete records."""
+
+    # No name company
+    for data in importer.read_csv(importer.SAMPLE_CSV, ["2348664-8"]):
+        return data
+
 
 @pytest.fixture()
 def multiple_tieke_rows(chain) -> dict:
@@ -76,11 +85,20 @@ def test_import_company_with_one_address(web3: Web3, registry_contract: Contract
 
 
 def test_import_company_with_multiple_addresses(web3: Web3, registry_contract: Contract, multiple_tieke_rows: List[dict]):
+    """We can import a company with multiple addresses."""
     for row in multiple_tieke_rows:
         import_invoicing_address(registry_contract, row)
 
     assert registry_contract.call().getInvoicingAddressCount("FI26597538") == 2
     assert registry_contract.call().getInvoicingAddressByIndex("FI26597538", 0) == "IBAN:FI6213763000140986"
     assert registry_contract.call().getInvoicingAddressByIndex("FI26597538", 1) == "OVT:3726597538"
+
+
+def test_missing_address_record(web3: Web3, registry_contract: Contract, broken_company: dict):
+    """Some bad input data."""
+    import_invoicing_address(registry_contract, broken_company)
+
+    assert registry_contract.call().getInvoicingAddressCount("FI23486648") == 1
+    assert registry_contract.call().getInvoicingAddressByIndex("FI23486648", 0) == "OVT:372348664835"
 
 

@@ -88,6 +88,7 @@
         $("#contract-manipulation input, #contract-manipulation button, #contract-manipulation textarea").removeAttr("disabled");
 
         window.localStorage.setItem("contractAddress", address);
+        window.contract = contract;
     }
 
     /**
@@ -102,65 +103,79 @@
         setupContract(address);
     }
 
-    /**
-     * User wants to update a record through UI.
-     */
-    function onUpdateData() {
-        var invoicingAddress = $("#update-data-invoicing-address").val();
-        var data = $("#update-data-invoicing-data").val();
+    function setErrorResult(msg) {
+        $("#result").text(msg);
+        $("#result").show();
+    }
 
-        // We set max gas limit for the transaction absurdly high,
-        // because we are on private net and don't care about Ether value
-        var gas = 2000000;
+    function showCompany(vatId) {
+        var res = $("#result");
+        res.empty();
 
-        console.log(web3.eth.coinbase, web3.eth.defaultAccount, web3.personal.listAccounts);
+        var data = {};
 
-        if(!contract) {
-            throw new Error("Need to initialize the contract first");
+        data.vatId = vatId;
+
+        var coreData = contract.getBusinessInformation(vatId, 4); // TiekeCompanyData
+        if(coreData) {
+            coreData = JSON.parse(coreData);
+            data.businessInformation = coreData;
+
+            data.addresses = {};
+
+            var bigNum = contract.getInvoicingAddressCount(vatId);
+
+            var addressCount = bigNum.toNumber();
+
+            console.log("Found ", addressCount, " addresses");
+
+            for(var i=0; i<addressCount; i++) {
+                var address = contract.getInvoicingAddressByIndex(vatId, i);
+
+                var addressData = contract.getAddressInformation(address, 5); // TiekeAddressData
+                console.log("Got data ", addressData);
+
+                if(addressData) {
+                    data.addresses[address] = JSON.parse(addressData);
+                } else {
+                    data.addresses[address] = "No data available";
+                }
+            }
+        } else {
+            data.businessInformation = "No information available";
         }
 
-        invoicingAddress = convertInvoicingAddressToBytes32(invoicingAddress);
 
-        // Create a transaction that updates the data record
-        contract.updateData(invoicingAddress, data, {value:0, gas:gas}, function(err, result) {
-            if(err) {
-                $("#alert-update-success").hide();
-                window.alert("Could not update data: " + err);
-            } else {
-                console.log("Outbound tx", result);
-                var txid = result;
+        var x = $("<div>");
+        x.text(JSON.stringify(data, null, 2));
+        res.append(x);
 
-                $("#btn-update-data").html('<i class="fa fa-spinner fa-spin"></i>');
-
-                var result = waitTx(txid, function(res) {
-                    console.log("TX result", res);
-                    $("#updated-data-invoicing-address").text(invoicingAddress);
-                    $("#alert-update-success").show();
-                    $("update-data-invoicing-data").val("");
-                    $("update-data-invoicing-address").val("");
-                    $("#btn-update-data").html("Update");
-                });
-                console.log(result);
-            }
-        });
+        res.show();
     }
 
     /**
-     * User queries data.
+     * Perform query by invoicing address id
      */
-    function onQueryData() {
+    function onQueryAddress() {
         var invoicingAddress = $("#query-invoicing-address").val();
 
-        invoicingAddress = convertInvoicingAddressToBytes32(invoicingAddress);
         console.log("Fetching data from", invoicingAddress);
 
-        var data = contract.getData(invoicingAddress);
-        var owners = contract.getOwners(invoicingAddress);
-        console.log(data);
-        console.log(owners);
+        var vatId = contract.getVatIdByAddress(invoicingAddress);
+        if(!vatId) {
+            setErrorResult("No company found for invoicing address " + invoicingAddress + ". Use OVT:xxx or IBAN:xxx prefix when typing in the address")
+        }
 
-        $("#query-result").text(data);
-        $("#query-result").show();
+        showCompany(vatId);
+    }
+
+    /**
+     * Perform query by VAT Id
+     */
+    function onQueryVATId() {
+        var vatId = $("#query-vat-id").val();
+        console.log("Fetching data from", vatId);
+        showCompany(vatId);
     }
 
     /**
@@ -182,8 +197,8 @@
         setupUI();
 
         $("#btn-setup-contract").click(onSetupContract);
-        $("#btn-update-data").click(onUpdateData);
-        $("#btn-query-data").click(onQueryData);
+        $("#btn-query-address").click(onQueryAddress);
+        $("#btn-query-vat-id").click(onQueryVATId);
 
         console.log("Setup complete");
     });

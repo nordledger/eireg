@@ -24,14 +24,6 @@ contract EInvoicingRegistry {
 
     }
 
-    enum AddressFormat {
-        Undefined,
-        OVT,
-        IBAN,
-        Other
-    }
-
-
     struct InvoicingAddressInformation {
 
         /* Who can modify this invoicing address as a
@@ -133,6 +125,10 @@ contract EInvoicingRegistry {
 
     function createCompany(string vatId) public {
 
+        if(bytes(vatId).length == 0) {
+            throw; // Bad data
+        }
+
         // Check if this party is allowed to update company core data (msg.sender = YTJ only)
         if(!canUpdateCompany(vatId, msg.sender)) {
             throw;
@@ -143,6 +139,10 @@ contract EInvoicingRegistry {
     }
 
     function createInvoicingAddress(string vatId, string invoicingAddress) public {
+
+        if(bytes(vatId).length == 0 || bytes(invoicingAddress).length == 0) {
+            throw; // Bad data
+        }
 
         if(!canUpdateInvoicingAddress(vatId, invoicingAddress, msg.sender)) {
             throw;
@@ -170,6 +170,10 @@ contract EInvoicingRegistry {
 
     function setCompanyData(string vatId, ContentType contentType, string data) public {
 
+        if(bytes(vatId).length == 0 || bytes(data).length == 0) {
+            throw; // Bad data
+        }
+
         // Check if this party is allowed to update company core data (msg.sender = YTJ only)
         if(!canUpdateCompany(vatId, msg.sender)) {
             throw;
@@ -181,6 +185,10 @@ contract EInvoicingRegistry {
     }
 
     function setInvoicingAddressData(string vatId, string invoicingAddress, ContentType contentType, string data) public {
+
+        if(bytes(vatId).length == 0 || bytes(invoicingAddress).length == 0 || bytes(data).length == 0) {
+            throw; // Bad data
+        }
 
         if(!canUpdateInvoicingAddress(vatId, invoicingAddress, msg.sender)) {
             throw;

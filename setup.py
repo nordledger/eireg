@@ -49,5 +49,11 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     test_suite='tests',
-    tests_require=test_requirements
+    tests_require=test_requirements,
+    # Define where this application starts as referred by WSGI web servers
+    entry_points="""\
+    [console_scripts]
+    import-tieke-csv = eireg.importer:main
+    """,
+
 )

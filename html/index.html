@@ -13,7 +13,7 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <h1>EInvoicingRegistry HTML demo</h1>
+            <h1>Electronic invoicing address registry demo</h1>
 
             <div class="alert alert-danger" id="alert-connection-failed" style="display: none">
                 Web3.js could not connect to http://localhost:8545
@@ -29,7 +29,6 @@
                 Connected to contract at <span id="active-address"></span> version <span id="active-version"></span>
             </div>
 
-
             <form>
               <div class="form-group">
                 <label for="setup-contract-address">Contract address</label>
@@ -40,74 +39,26 @@
 
             <div id="contract-manipulation">
 
-                <h2>Add / update invoicing address records</h2>
-
-                <div class="alert alert-success" id="alert-update-success" style="display: none">
-                    Updated records for <span id="updated-data-invoicing-address"></span>
-                </div>
+                <h2>Query database</h2>
 
                 <form>
                   <div class="form-group">
-
-                    <label for="update-data-invoicing-address">Invoicing address (OVT)</label>
-                    <input type="text" class="form-control" id="update-data-invoicing-address" placeholder="003712345678">
-
-                    <label for="update-data-invoicing-data">Data (JSON)</label>
-                    <textarea class="form-control" id="update-data-invoicing-data" placeholder="{}"></textarea>
-
+                        <label for="query-invoicing-address">Invoicing address (OVT/IBAN)</label>
+                    <input type="text" class="form-control" id="query-invoicing-address" placeholder="OVT:3724303727">
                   </div>
-                  <button id="btn-update-data" type="button" class="btn btn-default">Update</button>
+                  <button id="btn-query-address" type="button" class="btn btn-default">Search</button>
                 </form>
-
-                <h2>Query invoicing address records</h2>
-                <form>
-                  <div class="form-group">
-                        <label for="query-invoicing-address">EInvoice address (OVT)</label>
-                    <input type="text" class="form-control" id="query-invoicing-address" placeholder="003712345678">
-                  </div>
-                  <button id="btn-query-data" type="button" class="btn btn-default">Fetch</button>
-                  <pre id="query-result" style="display: none"></pre>
-                </form>
-
-                <h2 class="text-danger">Add key</h2>
-                <p>
-                    Add new key that is allowed to control user data.
-                </p>
-
-                <p class="text-danger">
-                    (Not implemented)
-                </p>
 
                 <form>
                   <div class="form-group">
-                    <label for="einvoice-address-input">EInvoice address (OVH)</label>
-                    <input type="text" class="form-control" id="einvoice-address-input-add-ovh" placeholder="0x000000000000">
-                    <input type="text" class="form-control" id="einvoice-address-input-add-key" placeholder="0x000000000000">
+                        <label for="query-vat-id">VAT id</label>
+                    <input type="text" class="form-control" id="query-vat-id" placeholder="FI24303727">
                   </div>
-                  <button type="submit" class="btn btn-default">Show stored data</button>
+                  <button id="btn-query-vat-id" type="button" class="btn btn-default">Search</button>
                 </form>
 
-                <h2 class="text-danger">Remove key</h2>
-                <p>
-                    Remove deprecated access key.
-                </p>
-
-                <p class="text-danger">
-                    (Not implemented)
-                </p>
-
-                <form>
-                  <div class="form-group">
-                    <label for="einvoice-address-input">EInvoice address (OVH)</label>
-                    <input type="text" class="form-control" id="einvoice-address-input-remove-ovh" placeholder="0x000000000000">
-                      <label for="einvoice-address-input">Key (Ethereum)</label>
-                    <input type="text" class="form-control" id="einvoice-address-input-remove-key" placeholder="0x000000000000">
-                  </div>
-                  <button type="submit" class="btn btn-default">Show stored data</button>
-                </form>
-
+                <pre id="result" style="display: none"></pre>
             </div>
-
         </div>
     </div>
 </div>
