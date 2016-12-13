@@ -101,13 +101,13 @@ def import_invoicing_address(contract: Contract, tieke_data: dict):
 def import_all(contract, fname):
     """Import all entries from a given CSV file."""
 
-    assert contract.call().version() == "0.2"
+    assert contract.call().version().startswith("0.")
 
     for tieke_data in read_csv(fname):
         try:
             import_invoicing_address(contract, tieke_data)
         except AlreadyExists as e:
-            print("Already imported:" + e)
+            print("Already imported:" + str(e))
 
 
 def main():

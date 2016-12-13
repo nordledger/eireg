@@ -1,4 +1,4 @@
-{
+export default {
     "EInvoicingRegistry": {
         "abi": [
             {
@@ -13,7 +13,7 @@
                         "type": "string"
                     }
                 ],
-                "name": "createInvoicingAddress",
+                "name": "createInvoiciexngAddress",
                 "outputs": [],
                 "type": "function"
             },

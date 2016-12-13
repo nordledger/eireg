@@ -1,3 +1,5 @@
+// pragma solidity ^0.4.6;
+
 /**
 * Registry of e-invoicing addresses as Solidity smart contract.
 */
@@ -30,6 +32,9 @@ contract EInvoicingRegistry {
            list of Ethereum addresses (public keys).
            Contains one entry, the public key of operator. */
         address[] owners;
+
+        /* Company this invoicing address belongs to. Can be empty. */
+        string vatId;
 
         /* Different information attached to this invoicing address.
            Key as ContentType.
@@ -71,13 +76,14 @@ contract EInvoicingRegistry {
          *
          */
 
-        mapping(string=>InvoicingAddressInformation) invoicingAddresses;
-
         /* All invoicing addresses as a list, because map keys are not iterable in Solidity */
         string[] allInvoicingAddresses;
     }
 
-    string public version = "0.2";
+    string public version = "0.3";
+
+    /** How owns this contract and can add companies */
+    address master;
 
     /**
      * Map VAT IDs to company records.
@@ -88,9 +94,16 @@ contract EInvoicingRegistry {
     mapping(string => Company) vatIdRegistry;
 
     /**
-     * MAP invoicing addresses to VAT ids
+     * Map invoicing address to data behind it
      */
-    mapping(string => string) invoicingAddressRegistry;
+    mapping(string=>InvoicingAddressInformation) invoicingAddressRegistry;
+
+    /**
+     * Vat id to company preferences to mappings.
+     *
+     * Company preferences is JSON encoded string.
+     */
+    mapping(string=>string) companyPreferencesRegistry;
 
     /**
      * Events that smart contracts post to blockchain, so that various listening
@@ -100,6 +113,7 @@ contract EInvoicingRegistry {
      */
     event CompanyCreated(string vatId);
     event CompanyUpdated(string vatId);
+    event CompanyPreferencesUpdated(string vatId);
     event InvoicingAddressCreated(string invoicingAddress);
     event InvoicingAddressUpdated(string invoicingAddress);
 
@@ -107,6 +121,7 @@ contract EInvoicingRegistry {
      * Constructor parameterless.
      */
     function EInvoicingRegistry() {
+        master = msg.sender;
     }
 
     /**
@@ -118,9 +133,11 @@ contract EInvoicingRegistry {
 
     /**
      * Return VAT ID for a given invoicing address.
+     *
+     * If not match return empty string.
      */
     function getVatIdByAddress(string invoicingAddress) public constant returns (string) {
-        return invoicingAddressRegistry[invoicingAddress];
+        return invoicingAddressRegistry[invoicingAddress].vatId;
     }
 
     function createCompany(string vatId) public {
@@ -144,13 +161,13 @@ contract EInvoicingRegistry {
             throw; // Bad data
         }
 
-        if(!canUpdateInvoicingAddress(vatId, invoicingAddress, msg.sender)) {
+        if(!canUpdateInvoicingAddress(invoicingAddress, msg.sender)) {
             throw;
         }
 
         // Become owner
         Company company = vatIdRegistry[vatId];
-        InvoicingAddressInformation info = company.invoicingAddresses[invoicingAddress];
+        InvoicingAddressInformation info = invoicingAddressRegistry[invoicingAddress];
 
         if(info.owners.length > 0) {
             throw; // Already created
@@ -159,10 +176,12 @@ contract EInvoicingRegistry {
         info.owners.push(msg.sender);
 
         // Backwards mapping invoicing address -> VAT ID
-        invoicingAddressRegistry[invoicingAddress] = vatId;
+        invoicingAddressRegistry[invoicingAddress].vatId =  vatId;
 
         // List of all registered addresses for this company
-        company.allInvoicingAddresses.push(invoicingAddress);
+        if(company.owners.length > 0) {
+            company.allInvoicingAddresses.push(invoicingAddress);
+        }
 
         // Notify new address created
         InvoicingAddressCreated(invoicingAddress);
@@ -186,15 +205,12 @@ contract EInvoicingRegistry {
 
     function setInvoicingAddressData(string vatId, string invoicingAddress, ContentType contentType, string data) public {
 
-        if(bytes(vatId).length == 0 || bytes(invoicingAddress).length == 0 || bytes(data).length == 0) {
-            throw; // Bad data
-        }
-
-        if(!canUpdateInvoicingAddress(vatId, invoicingAddress, msg.sender)) {
+        if(!canUpdateInvoicingAddress(invoicingAddress, msg.sender)) {
             throw;
         }
 
-        vatIdRegistry[vatId].invoicingAddresses[invoicingAddress].data[uint(contentType)] = data;
+        invoicingAddressRegistry[invoicingAddress].data[uint(contentType)] = data;
+        invoicingAddressRegistry[invoicingAddress].vatId = vatId;
 
         InvoicingAddressUpdated(invoicingAddress);
     }
@@ -236,28 +252,47 @@ contract EInvoicingRegistry {
     }
 
     function getAddressInformation(string invoicingAddress, ContentType contentType) public constant returns(string) {
-
-        string memory vatId = getVatIdByAddress(invoicingAddress);
-        Company company = vatIdRegistry[vatId];
-
-        if(company.owners.length == 0) {
-            throw; // Not created yet
-        }
-
-        return company.invoicingAddresses[invoicingAddress].data[uint(contentType)];
+        return invoicingAddressRegistry[invoicingAddress].data[uint(contentType)];
     }
 
     /**
-     * Not implemented yet. Anybody can update company core data.
+     * Company owner can update their preferences.
+     */
+    function updateRoutingPreference(string vatId, string preferences) {
+
+        if(!canUpdateCompanyPreferences(vatId, msg.sender)) {
+            throw;
+        }
+
+        companyPreferencesRegistry[vatId] = preferences;
+    }
+
+    /**
+     * Get routing preferences set by the company owner.
+     *
+     */
+    function getCompanyPreferences(string vatId) public constant returns (string) {
+        return companyPreferencesRegistry[vatId];
+    }
+
+    /**
+     * Only registry master key can add companies.
      */
     function canUpdateCompany(string vatId, address sender) public constant returns (bool) {
+        return sender == master;
+    }
+
+    /**
+     * Invoicing address operators can update data behind id.
+     */
+    function canUpdateInvoicingAddress(string invoicingAddress, address sender) public constant returns (bool) {
         return true;
     }
 
     /**
-     * Not implemented yet. Anybody can update company core data.
+     * Invoicing address operators can update data behind id.
      */
-    function canUpdateInvoicingAddress(string vatId, string invoicingAddress, address sender) public constant returns (bool) {
+    function canUpdateCompanyPreferences(string vatId, address sender) public constant returns (bool) {
         return true;
     }
 

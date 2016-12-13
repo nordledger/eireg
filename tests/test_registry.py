@@ -102,3 +102,35 @@ def test_missing_address_record(web3: Web3, registry_contract: Contract, broken_
     assert registry_contract.call().getInvoicingAddressByIndex("FI23486648", 0) == "OVT:372348664835"
 
 
+
+def tet_set_routing_information(web3: Web3, registry_contract: Contract, sample_company: dict):
+    """Set company routing preferences.."""
+
+    import_invoicing_address(registry_contract, sample_company)
+
+    assert registry_contract.call().hasCompany("FI24303727")
+    assert registry_contract.call().getVatIdByAddress("OVT:3724303727") == "FI24303727"
+
+    # Check business core data
+    expected = {
+        "name": "Adusso Oy"
+    }
+
+    actual = registry_contract.call().getBusinessInformation("FI24303727", ContentType.TiekeCompanyData.value)
+    assert json.loads(actual) == expected
+
+    # Check address data
+    expected = {
+        "operatorName": "OpusCapita Group Oy",
+        "operatorId": "3710948874",
+        "permissionToSend": True,
+        "sends": True,
+        "receives": True,
+    }
+
+    # See we have one address
+    assert registry_contract.call().getInvoicingAddressCount("FI24303727") == 1
+    assert registry_contract.call().getInvoicingAddressByIndex("FI24303727", 0) == "OVT:3724303727"
+
+    actual = registry_contract.call().getAddressInformation("OVT:3724303727", ContentType.TiekeAddressData.value)
+    assert json.loads(actual) == expected

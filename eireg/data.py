@@ -4,6 +4,9 @@ TODO: Now hand mapped, use automation in the future.
 """
 
 import enum
+import json
+
+from typing import List
 
 
 class ContentType(enum.Enum):
@@ -14,3 +17,29 @@ class ContentType(enum.Enum):
     TiekeCompanyData = 4
     TiekeAddressData = 5
 
+
+
+def create_company_preferences(default_address: str, invoice_addresses: List[dict]) -> str:
+    """Return a JSON encoded string of a company preferences to be stored within the smart contract.
+
+    Example of company preferences data::
+
+        {
+            "defaultAddress": "xxx",
+            "invoiceAddresses": {
+                "xxx": {
+                    "permissionToSend": true,
+                    "sends": true,
+                    "receives": true,
+                    "receivePreferences": ["tax"],
+                }
+            }
+
+        }
+
+    """
+    data = {
+        "defaultAddress": default_address,
+        "invoiceAddresses": invoice_addresses,
+    }
+    return json.dumps(data)
