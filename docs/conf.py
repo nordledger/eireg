@@ -19,7 +19,7 @@ import os
 # If extensions (or modules to document with autodoc) are in another
 # directory, add these directories to sys.path here. If the directory is
 # relative to the documentation root, use os.path.abspath to make it
-# absolute, like shown here.
+# absolute, like shown h    ere.
 #sys.path.insert(0, os.path.abspath('.'))
 
 # Get the project root dir, which is the parent dir of this
@@ -240,7 +240,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'eireg',
-     u'eInvoicing address registry Documentation',
+     u'Electronic invoicing address registry on blockchain documentation',
      [u'Mikko Ohtamaa'], 1)
 ]
 
