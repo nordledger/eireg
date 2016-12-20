@@ -258,7 +258,7 @@ contract EInvoicingRegistry {
     /**
      * Company owner can update their preferences.
      */
-    function updateRoutingPreference(string vatId, string preferences) {
+    function updateRoutingPreference(string vatId, string preferences) public {
 
         if(!canUpdateCompanyPreferences(vatId, msg.sender)) {
             throw;
