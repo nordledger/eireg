@@ -28,6 +28,10 @@ This project is a blockchain based e-invoicing address registry.
 
 * Documentation: https://eireg.readthedocs.io.
 
+See also React based more complete front end
+
+* `Company self service portal project on Github <https://github.com/nordledger/companyselfservice>`_
+
 Credits
 -------
 

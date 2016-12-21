@@ -7,6 +7,28 @@ Usage
 Working on a local private testnet
 ==================================
 
+See a local private chain starts:
+
+.. code-block:: console
+
+    make run-local-test-chain
+
+Abort with CTRL-C when it starts to generate DAG.
+
+Copy in a custom keyfile for the coinbase account, so that we have the same deterministic coinbase account id for all runs:
+
+.. code-block:: console
+
+    cp keyfiles/UTC--2016-11-08T16-15-25.205056382Z--27d1755735abaf6cefb2299d18458b1091bb2c7b  chains/local_test/keystore/
+
+Start a local private chain again and mine some ETH for a while (1 minute):
+
+.. code-block:: console
+
+    make run-local-test-chain
+
+Abort with CTRL-C.
+
 First we deploy a version of the contract on local chain managed by Populus.
 
 .. code-block:: console
@@ -23,14 +45,28 @@ You will get deployment details::
     Gas Used     : 262249
 
 
+Write down the deployed contract **Address** field. It varies across deployments.
+
 This will take ~60 seconds. The default coinbase account is ``0x27d1755735abaf6cefb2299d18458b1091bb2c7b``. It is configured in ``populus.ini``.
 
-Write down **Address** field. It varies for each deployment.
+Tieke / CSV import
+==================
 
-CSV import
-==========
+Get Tieke electronic invoicing registry data dump as CSV.
 
-TODO
+Use ``import-tieke-csv`` tool to import existing records to a given smart contract address:
+
+.. code-block:: console
+
+    import-tieke-csv sample.csv local_test 0xb52fc9040759e04b793cbb094dc64ee051377c4c
+
+.. note ::
+
+    The local chain must not be running, but it is managed by this command.
+
+.. note ::
+
+    The tool lacks parallelism and is extremely slow at the moment.
 
 Interacting with web browser
 ============================
