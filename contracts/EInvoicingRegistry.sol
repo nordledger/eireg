@@ -203,6 +203,7 @@ contract EInvoicingRegistry {
         CompanyUpdated(vatId);
     }
 
+    // TODO: Do combined createAddress + setInvoicingAddressData to reduce latencies
     function setInvoicingAddressData(string vatId, string invoicingAddress, ContentType contentType, string data) public {
 
         if(!canUpdateInvoicingAddress(invoicingAddress, msg.sender)) {
