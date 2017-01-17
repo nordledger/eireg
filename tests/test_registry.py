@@ -140,4 +140,4 @@ def test_send_invoice(web3: Web3, registry_contract: Contract, sample_company: d
     """Test send invoice function."""
     invoice_id = "00001"
     payload = "<xml></xml>"
-    registry_contract.transact().sendInvoice("FI24303727", invoice_id, payload)
+    registry_contract.transact().sendInvoice("FI24303727", "FI23486648", invoice_id, payload)

@@ -124,7 +124,7 @@ contract EInvoicingRegistry {
     event InvoicingAddressCreated(string invoicingAddress);
     event InvoicingAddressUpdated(string invoicingAddress);
 
-    event InvoiceSent(string invoicingAddress, string invoiceId);
+    event InvoiceSent(string indexed toInvoiceAddress, string indexed fromInvoiceAddress, string invoiceId);
 
     /**
      * Constructor parameterless.
@@ -310,10 +310,20 @@ contract EInvoicingRegistry {
      * Demo invoice send function.
      *
      * Does not encrypt payload - in real environment we need the public key of the receiver.
+     *
+     * Does not check permissions.
      */
-    function sendInvoice(string invoicingAddress, string invoiceId, string payload) {
+    function sendInvoice(string toInvoiceAddress, string fromInvoiceAddress, string invoiceId, string payload) {
         invoiceRegistry[invoiceId] = payload;
-        InvoiceSent(invoicingAddress, invoiceId);
+        InvoiceSent(toInvoiceAddress, fromInvoiceAddress, invoiceId);
+    }
+
+    /**
+     * Return demo invoice payload.
+     *
+     */
+    function getInvoice(string invoiceId) public returns (string) {
+        return invoiceRegistry[invoiceId];
     }
 
 }
