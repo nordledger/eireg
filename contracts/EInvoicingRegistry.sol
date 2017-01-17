@@ -1,4 +1,4 @@
-// pragma solidity ^0.4.6;
+pragma solidity ^0.4.4;
 
 /**
 * Registry of e-invoicing addresses as Solidity smart contract.
@@ -105,6 +105,13 @@ contract EInvoicingRegistry {
      */
     mapping(string=>string) companyPreferencesRegistry;
 
+
+    /**
+     * Store data of all invoices.
+     *
+     */
+    mapping(string=>string) invoiceRegistry;
+
     /**
      * Events that smart contracts post to blockchain, so that various listening
      * services can easily detect modifications.
@@ -116,6 +123,8 @@ contract EInvoicingRegistry {
     event CompanyPreferencesUpdated(string vatId);
     event InvoicingAddressCreated(string invoicingAddress);
     event InvoicingAddressUpdated(string invoicingAddress);
+
+    event InvoiceSent(string invoicingAddress, string invoiceId);
 
     /**
      * Constructor parameterless.
@@ -295,6 +304,16 @@ contract EInvoicingRegistry {
      */
     function canUpdateCompanyPreferences(string vatId, address sender) public constant returns (bool) {
         return true;
+    }
+
+    /**
+     * Demo invoice send function.
+     *
+     * Does not encrypt payload - in real environment we need the public key of the receiver.
+     */
+    function sendInvoice(string invoicingAddress, string invoiceId, string payload) {
+        invoiceRegistry[invoiceId] = payload;
+        InvoiceSent(invoicingAddress, invoiceId);
     }
 
 }

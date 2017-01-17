@@ -103,7 +103,7 @@ def test_missing_address_record(web3: Web3, registry_contract: Contract, broken_
 
 
 
-def tet_set_routing_information(web3: Web3, registry_contract: Contract, sample_company: dict):
+def test_set_routing_information(web3: Web3, registry_contract: Contract, sample_company: dict):
     """Set company routing preferences.."""
 
     import_invoicing_address(registry_contract, sample_company)
@@ -134,3 +134,10 @@ def tet_set_routing_information(web3: Web3, registry_contract: Contract, sample_
 
     actual = registry_contract.call().getAddressInformation("OVT:3724303727", ContentType.TiekeAddressData.value)
     assert json.loads(actual) == expected
+
+
+def test_send_invoice(web3: Web3, registry_contract: Contract, sample_company: dict):
+    """Test send invoice function."""
+    invoice_id = "00001"
+    payload = "<xml></xml>"
+    registry_contract.transact().sendInvoice("FI24303727", invoice_id, payload)
