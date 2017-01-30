@@ -99,5 +99,9 @@ prepare-html: compile
 run-local-test-chain:
 	geth --rpc --rpccorsdomain "*" --rpcaddr 127.0.0.1 --rpcport 8545 --rpcapi admin,debug,eth,miner,net,personal,shh,txpool,web3,ws --datadir chains/local_test --maxpeers 0 --networkid 1234 --port 30303 --verbosity 5 --unlock 0 --password venv/lib/python3.5/site-packages/geth/default_blockchain_password --nodiscover --mine --minerthreads 1
 
+# Needed to send transactions from demo
+unlock-test-chain:
+	bash unlock-geth.bash
+
 run-web-server: prepare-html
 	source venv/bin/activate && cd html && python -m http.server

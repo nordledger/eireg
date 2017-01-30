@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+
+from populus import Project
+from populus.utils.cli import get_unlocked_deploy_from_address
+from web3.contract import Contract
+
+import concurrent
+import concurrent.futures
+
 import csv
 import json
 import os
@@ -6,9 +14,6 @@ from typing import Optional
 
 import sys
 
-from populus import Project
-from populus.utils.cli import get_unlocked_deploy_from_address
-from web3.contract import Contract
 
 from eireg.blockchain import check_succesful_tx
 from eireg.data import ContentType
@@ -77,11 +82,12 @@ def import_invoicing_address(contract: Contract, tieke_data: dict):
 
     # We have not imported this address yet
     if contract.call().getVatIdByAddress(address) != "":
-        raise AlreadyExists("VAT id: {}, address: {}".format(vat_id, address))
+        print("Already exists: VAT id: {}, address: {}".format(vat_id, address))
+        return
 
     # Create new OVT address
     txid = contract.transact().createInvoicingAddress(vat_id, address)
-    assert check_succesful_tx(contract, txid)
+    assert check_succesful_tx(contract, txid, timeout=180)
 
     tieke_address_data = {
         "operatorName": tieke_data["Operaattori"],
@@ -97,17 +103,44 @@ def import_invoicing_address(contract: Contract, tieke_data: dict):
 
     print("Done with {} {}".format(vat_id, address))
 
+    return address
 
-def import_all(contract, fname):
+
+def import_all(contract: Contract, fname: str):
     """Import all entries from a given CSV file."""
 
     assert contract.call().version().startswith("0.")
 
-    for tieke_data in read_csv(fname):
+    for row in read_csv(fname):
         try:
-            import_invoicing_address(contract, tieke_data)
+            import_invoicing_address(contract, row)
         except AlreadyExists as e:
             print("Already imported:" + str(e))
+
+
+def import_all_pooled(contract: Contract, fname: str, workers=32):
+    """Parallerized CSV import."""
+
+    assert contract.call().version().startswith("0.")
+
+    # Run the futures within this thread pool
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+
+        # Stream incoming data and build futures.
+        # The execution of futures beings right away and the executor
+        # does not wait the loop to be completed.
+        futures = [executor.submit(import_invoicing_address, contract, row) for row in read_csv(fname)]
+
+        # This print may be slightly delayed, as futures start executing as soon as the pool begins to fill,
+        # eating your CPU time
+        print("Executing total", len(futures), "jobs")
+
+        # Wait the executor to complete each future, give 180 seconds for each job
+        idx = 0
+        for future in concurrent.futures.as_completed(futures, timeout=180.0):
+            res = future.result()  # We don't use result value here, but this will also abort the execution on any exception
+            print("Processed job", idx, "result", res)
+            idx += 1
 
 
 def main():
@@ -124,6 +157,9 @@ def main():
     address = sys.argv[3]
 
     project = Project()
+
+    print("Make sure {} is running or you'll get timeout".format(chain_name))
+
     with project.get_chain(chain_name) as chain:
 
         # Goes through coinbase account unlock process if needed
@@ -131,7 +167,7 @@ def main():
 
         EInvoicingRegistry = chain.get_contract_factory('EInvoicingRegistry')
         contract = EInvoicingRegistry(address=address)
-        import_all(contract, fname)
+        import_all_pooled(contract, fname)
 
 
 
